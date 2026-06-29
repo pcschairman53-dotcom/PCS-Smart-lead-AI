@@ -69,9 +69,13 @@ export default function LeadPredictor({ onLeadAdded, sheetsActive }: LeadPredict
     setSuccessMsg(null);
 
     try {
-      const response = await fetch("/api/analyze", {
+      const url = localStorage.getItem("pcs_google_sheets_url") || "https://script.google.com/macros/s/AKfycbwtZ8Z8KeZZZoRqZTDDod2IJlMVNw7RDodbL4Kx4Cwpjp4iyxnWg6j8PajAEzYUO2bhYg/exec";
+      
+      const response = await fetch(url, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "text/plain;charset=utf-8"
+        },
         body: JSON.stringify({
           name,
           mobile,
@@ -80,7 +84,8 @@ export default function LeadPredictor({ onLeadAdded, sheetsActive }: LeadPredict
           service,
           budget,
           message
-        })
+        }),
+        redirect: "follow"
       });
 
       if (!response.ok) {
@@ -88,11 +93,52 @@ export default function LeadPredictor({ onLeadAdded, sheetsActive }: LeadPredict
       }
 
       const data = await response.json();
-      if (data.success && data.lead) {
-        setPredictionResult(data.lead);
-        setSuccessMsg(data.message || "Lead synchronized and processed successfully.");
-        onLeadAdded(data.lead);
-      }
+      const scriptData = data.lead || data;
+      
+      const leadScore = Number(scriptData.leadScore ?? scriptData.score ?? scriptData.lead_score ?? 75);
+      const leadPriorityRaw = String(scriptData.leadPriority ?? scriptData.priority ?? scriptData.classification ?? scriptData.lead_priority ?? "Warm");
+      const leadPriority: "Hot" | "Warm" | "Cold" = (leadPriorityRaw.toLowerCase().includes("hot") ? "Hot" : (leadPriorityRaw.toLowerCase().includes("cold") ? "Cold" : "Warm"));
+      
+      const aiAnalysis = String(scriptData.aiAnalysis ?? scriptData.analysis ?? scriptData.ai_analysis ?? "Processed successfully by PCS Lead Scoring Engine.");
+      const businessOpportunity = String(scriptData.businessOpportunity ?? scriptData.opportunity ?? scriptData.business_opportunity ?? "Standard custom integration.");
+      const conversionProbability = Number(scriptData.conversionProbability ?? scriptData.probability ?? scriptData.conversion_probability ?? 75);
+      const recommendedAction = String(scriptData.recommendedAction ?? scriptData.action ?? scriptData.recommended_action ?? "Contact prospect via WhatsApp hotline.");
+      const followUpDate = String(scriptData.followUpDate ?? scriptData.follow_up_date ?? new Date().toISOString().split("T")[0]);
+
+      const finishedLead: Lead = {
+        id: "lead-" + Date.now(),
+        dateTime: new Date().toISOString(),
+        name,
+        mobile,
+        email,
+        businessName: businessName || "Not specified",
+        service,
+        budget,
+        message: message || "None",
+        leadScore,
+        leadPriority,
+        aiAnalysis,
+        businessOpportunity,
+        conversionProbability,
+        recommendedAction,
+        followUpDate,
+        leadSource: "Google Apps Script Backend",
+        whatsappStatus: "Pending"
+      };
+
+      setPredictionResult(finishedLead);
+      setSuccessMsg(data.message || "Lead synchronized and processed successfully.");
+      onLeadAdded(finishedLead);
+
+      // Reset the form input fields
+      setName("");
+      setMobile("");
+      setEmail("");
+      setBusinessName("");
+      setService("AI Automation");
+      setBudget(45000);
+      setMessage("");
+
     } catch (err: any) {
       console.error(err);
       // Fallback state on network error
@@ -407,7 +453,7 @@ export default function LeadPredictor({ onLeadAdded, sheetsActive }: LeadPredict
                     <li>Google Sheets rows insert</li>
                     <li>High-performance Lead Scoring Classification</li>
                     <li>Hot/Warm/Cold SLA prediction</li>
-                    <li>Gemini Enterprise AI analysis</li>
+                    <li>PCS AI Engine Enterprise Analysis</li>
                   </ul>
                 </div>
               </div>
@@ -428,7 +474,7 @@ export default function LeadPredictor({ onLeadAdded, sheetsActive }: LeadPredict
                   </div>
                 </div>
                 <div className="px-2.5 py-1 rounded-md bg-purple-500/10 border border-purple-500/30 text-[10px] font-extrabold text-purple-300 font-mono">
-                  {predictionResult.leadPriority === "Hot" ? "GEMINI AI ENGAGED" : "RULE CONTROLLER"}
+                  {predictionResult.leadPriority === "Hot" ? "PCS AI ENGINE ACTIVE" : "RULE-BASED AI"}
                 </div>
               </div>
 

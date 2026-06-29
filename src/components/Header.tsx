@@ -26,14 +26,14 @@ export default function Header({ currentTab, setCurrentTab, geminiActive, sheets
         <div>
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className="font-extrabold text-base sm:text-lg tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
-              PCS Smart Lead Predictor
+              PCS Smart Lead Predictor AI
             </span>
             <span className="text-[9px] sm:text-[10px] bg-indigo-500/15 text-indigo-400 font-bold px-1.5 sm:px-2 py-0.5 rounded-full border border-indigo-500/30 whitespace-nowrap">
               AI v2.5
             </span>
           </div>
-          <p className="text-[9px] sm:text-[10px] text-gray-400 tracking-wider font-medium uppercase">
-            PCS Consultancy Enterprise
+          <p className="text-[9px] sm:text-[10px] text-purple-400 tracking-wider font-semibold uppercase">
+            Powered by PCS AI Engine
           </p>
         </div>
       </div>
@@ -55,13 +55,13 @@ export default function Header({ currentTab, setCurrentTab, geminiActive, sheets
       </nav>
 
       <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-between sm:justify-end">
-        {/* Gemini Engine Active Status */}
+        {/* PCS AI Engine Active Status */}
         <div className="flex items-center gap-1.5 bg-slate-950/60 border border-gray-800 px-2.5 sm:px-3 py-1.5 rounded-xl text-[11px] sm:text-xs">
           {geminiActive ? (
             <>
               <Sparkles className="w-3.5 h-3.5 text-purple-400 animate-pulse shrink-0" />
               <span className="font-mono text-purple-300 font-semibold whitespace-nowrap">
-                Gemini <span className="hidden xs:inline sm:inline">3.5 Flash</span>
+                PCS AI Engine <span className="hidden xs:inline sm:inline">Active</span>
               </span>
               <span className="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0" />
             </>
@@ -69,7 +69,7 @@ export default function Header({ currentTab, setCurrentTab, geminiActive, sheets
             <>
               <ShieldAlert className="w-3.5 h-3.5 text-amber-500 shrink-0" />
               <span className="font-mono text-amber-400 font-semibold whitespace-nowrap">
-                Rule <span className="hidden xs:inline sm:inline">Based Mode</span>
+                Rule-Based <span className="hidden xs:inline sm:inline">AI</span>
               </span>
               <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
             </>

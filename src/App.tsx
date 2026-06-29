@@ -9,6 +9,129 @@ import ContactWidgets from "./components/ContactWidgets";
 import { Lead } from "./types";
 import { Sparkles, ArrowRight, HelpCircle } from "lucide-react";
 
+const defaultLeads: Lead[] = [
+  {
+    id: "lead-1782737836336",
+    dateTime: "2026-06-29T12:57:16.336Z",
+    name: "pcs Chairman",
+    mobile: "+919330457995",
+    email: "pcschairman53@gmail.com",
+    businessName: "PCS consultancy",
+    service: "Website Development",
+    budget: 25000,
+    message: "good",
+    leadScore: 45,
+    leadPriority: "Cold",
+    aiAnalysis: "Low priority lead. Nurture through marketing.",
+    businessOpportunity: "Standard custom integration.",
+    conversionProbability: 75,
+    recommendedAction: "Contact prospect via WhatsApp hotline.",
+    followUpDate: "2026-07-02",
+    leadSource: "Google Sheets Sync",
+    whatsappStatus: "Pending"
+  },
+  {
+    id: "lead-1",
+    dateTime: "2026-06-25T11:20:00.000Z",
+    name: "Aarav Mehta",
+    mobile: "+91 98300 12345",
+    email: "aarav.mehta@techcorp.in",
+    businessName: "Mehta Industrial Solutions",
+    service: "AI Automation",
+    budget: 75000,
+    message: "We need an AI-powered conversational agent to triage and automate our incoming vendor inquiries.",
+    leadScore: 90,
+    leadPriority: "Hot",
+    aiAnalysis: "High intent enterprise inquiry requesting immediate AI triage agent. Clear budget alignment.",
+    businessOpportunity: "Automated agent platform for vendor operations, huge upsell potential.",
+    conversionProbability: 92,
+    recommendedAction: "Schedule a live architecture demo within 24 hours.",
+    followUpDate: "2026-06-30",
+    leadSource: "AI Assistant",
+    whatsappStatus: "Contacted"
+  },
+  {
+    id: "lead-2",
+    dateTime: "2026-06-26T15:34:00.000Z",
+    name: "Priya Sharma",
+    mobile: "+91 98765 43210",
+    email: "sharmapriya@gmail.com",
+    businessName: "Sharma Organic Foods",
+    service: "Website Development",
+    budget: 35000,
+    message: "Looking for an elegant e-commerce catalog website to sell organic tea and honey products online.",
+    leadScore: 65,
+    leadPriority: "Warm",
+    aiAnalysis: "Warm standard business web platform project. Medium budget. Solid conversion potential.",
+    businessOpportunity: "Custom catalog with payment integration and WhatsApp ordering.",
+    conversionProbability: 70,
+    recommendedAction: "Share past e-commerce portfolio and pricing plans.",
+    followUpDate: "2026-07-02",
+    leadSource: "AI Assistant",
+    whatsappStatus: "Pending"
+  },
+  {
+    id: "lead-3",
+    dateTime: "2026-06-27T08:12:00.000Z",
+    name: "Rohan Das",
+    mobile: "+91 93301 98765",
+    email: "das.rohan@outlook.com",
+    businessName: "Das Stationery Hub",
+    service: "Digital Marketing & Lead Generation",
+    budget: 15000,
+    message: "Need local SEO optimization and Instagram ads setup to drive walk-in customers.",
+    leadScore: 40,
+    leadPriority: "Cold",
+    aiAnalysis: "Budget is below threshold. Local retail lead requiring low-cost digital marketing support.",
+    businessOpportunity: "Standard local SEO optimization packages.",
+    conversionProbability: 35,
+    recommendedAction: "Send automated catalog & standard packages.",
+    followUpDate: "2026-07-06",
+    leadSource: "AI Assistant",
+    whatsappStatus: "Pending"
+  },
+  {
+    id: "lead-4",
+    dateTime: "2026-06-28T14:45:00.000Z",
+    name: "Ananya Sen",
+    mobile: "+91 94330 55443",
+    email: "ananya.sen@senconsulting.co",
+    businessName: "Sen & Associates CRM",
+    service: "CRM Setup",
+    budget: 60000,
+    message: "We need an end-to-end CRM automation setup using HubSpot or Zoho. Want automated email sequences.",
+    leadScore: 85,
+    leadPriority: "Hot",
+    aiAnalysis: "Hot lead targeting complete CRM workflows and active sequences. High decision power.",
+    businessOpportunity: "Full workflow setup, platform licensing referral opportunities.",
+    conversionProbability: 88,
+    recommendedAction: "Schedule CRM diagnostic call.",
+    followUpDate: "2026-06-30",
+    leadSource: "AI Assistant",
+    whatsappStatus: "Contacted"
+  },
+  {
+    id: "lead-5",
+    dateTime: "2026-06-29T02:10:00.000Z",
+    name: "Vikram Malhotra",
+    mobile: "+91 98112 33445",
+    email: "vmalhotra@gmail.com",
+    businessName: "Malhotra Realties",
+    service: "WhatsApp Automation",
+    budget: 45000,
+    message: "Want automatic lead alerts sent to our agents via WhatsApp as soon as they register on our site.",
+    leadScore: 75,
+    leadPriority: "Warm",
+    aiAnalysis: "Strong interest in API automation. High conversion alignment if standard pricing matches.",
+    businessOpportunity: "WhatsApp API trigger logic integration with lead capturing portals.",
+    conversionProbability: 78,
+    recommendedAction: "Send WhatsApp Automation case studies.",
+    followUpDate: "2026-07-02",
+    leadSource: "AI Assistant",
+    whatsappStatus: "Pending"
+  }
+];
+
 export default function App() {
   const [currentTab, setCurrentTab] = useState<string>("landing");
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -18,13 +141,16 @@ export default function App() {
   // Load leads and verify integrations
   const fetchLeads = async () => {
     try {
-      const res = await fetch("/api/leads");
-      if (res.ok) {
-        const data = await res.json();
-        setLeads(data);
+      const cached = localStorage.getItem("pcs_leads_cache");
+      if (cached) {
+        setLeads(JSON.parse(cached));
+      } else {
+        localStorage.setItem("pcs_leads_cache", JSON.stringify(defaultLeads));
+        setLeads(defaultLeads);
       }
     } catch (err) {
-      console.error("Failed to load leads from database server:", err);
+      console.error("Failed to load leads from localStorage:", err);
+      setLeads(defaultLeads);
     }
   };
 
@@ -46,57 +172,42 @@ export default function App() {
   // Update Status
   const handleUpdateStatus = async (id: string, status: 'Pending' | 'Contacted') => {
     try {
-      const res = await fetch(`/api/leads/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ whatsappStatus: status })
-      });
-
-      if (res.ok) {
-        // Optimistic state update
-        setLeads(prevLeads => 
-          prevLeads.map(l => l.id === id ? { ...l, whatsappStatus: status } : l)
-        );
-      }
+      const updatedLeads = leads.map(l => l.id === id ? { ...l, whatsappStatus: status } : l);
+      setLeads(updatedLeads);
+      localStorage.setItem("pcs_leads_cache", JSON.stringify(updatedLeads));
     } catch (err) {
-      console.error("Failed to update status on server:", err);
+      console.error("Failed to update status in localStorage:", err);
     }
   };
 
   // Delete Lead
   const handleDeleteLead = async (id: string) => {
     try {
-      const res = await fetch(`/api/leads/${id}`, {
-        method: "DELETE"
-      });
-
-      if (res.ok) {
-        setLeads(prevLeads => prevLeads.filter(l => l.id !== id));
-      }
+      const updatedLeads = leads.filter(l => l.id !== id);
+      setLeads(updatedLeads);
+      localStorage.setItem("pcs_leads_cache", JSON.stringify(updatedLeads));
     } catch (err) {
-      console.error("Failed to delete lead from server:", err);
+      console.error("Failed to delete lead from localStorage:", err);
     }
   };
 
   // Reset Leads to Defaults
   const handleResetLeads = async () => {
     try {
-      const res = await fetch("/api/leads/reset", {
-        method: "POST"
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        setLeads(data.leads);
-      }
+      setLeads(defaultLeads);
+      localStorage.setItem("pcs_leads_cache", JSON.stringify(defaultLeads));
     } catch (err) {
-      console.error("Failed to reset leads dataset:", err);
+      console.error("Failed to reset leads dataset in localStorage:", err);
     }
   };
 
   // Callback when a new lead is processed
   const handleNewLeadProcessed = (newLead: Lead) => {
-    setLeads(prevLeads => [newLead, ...prevLeads]);
+    setLeads(prevLeads => {
+      const updated = [newLead, ...prevLeads];
+      localStorage.setItem("pcs_leads_cache", JSON.stringify(updated));
+      return updated;
+    });
     checkIntegrations(); // Re-check sheets or keys
   };
 

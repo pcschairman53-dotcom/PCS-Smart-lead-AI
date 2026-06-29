@@ -237,7 +237,7 @@ export default function Analytics({ leads, onUpdateStatus, onDeleteLead, onReset
           </p>
           <div className="text-[10px] text-purple-300 font-medium flex items-center gap-1 bg-purple-500/10 px-2 py-0.5 rounded-md w-fit border border-purple-500/20">
             <Sparkles className="w-3 h-3 text-purple-400" />
-            Gemini active: {stats.hot}
+            PCS AI Engine Active: {stats.hot}
           </div>
         </div>
 

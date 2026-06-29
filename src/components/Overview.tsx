@@ -86,10 +86,12 @@ export default function Overview({ onStartPredictor, onLeadAdded }: OverviewProp
     setIsSubmittingForm(true);
     
     try {
-      const response = await fetch("/api/analyze", {
+      const url = localStorage.getItem("pcs_google_sheets_url") || "https://script.google.com/macros/s/AKfycbwtZ8Z8KeZZZoRqZTDDod2IJlMVNw7RDodbL4Kx4Cwpjp4iyxnWg6j8PajAEzYUO2bhYg/exec";
+      
+      const response = await fetch(url, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "text/plain;charset=utf-8"
         },
         body: JSON.stringify({
           name: fullName,
@@ -99,26 +101,58 @@ export default function Overview({ onStartPredictor, onLeadAdded }: OverviewProp
           service: selectedService,
           budget: budgetVal,
           message: messageText || `Interested in ${selectedService}`
-        })
+        }),
+        redirect: "follow"
       });
       
       if (response.ok) {
         const data = await response.json();
-        if (data.success && data.lead) {
-          const finishedLead: Lead = data.lead;
-          setSubmissionResult(finishedLead);
-          
-          // Trigger success callback to add to analytics ledger
-          if (onLeadAdded) {
-            onLeadAdded(finishedLead);
-          }
-          
-          // Show persistent success toast in the corner
-          setSuccessToast(true);
-          setTimeout(() => setSuccessToast(false), 5000);
-          
-          // Generate Whatsapp link
-          const rawMsg = `Hello PCS Consultancy,
+        const scriptData = data.lead || data;
+        
+        const leadScore = Number(scriptData.leadScore ?? scriptData.score ?? scriptData.lead_score ?? 75);
+        const leadPriorityRaw = String(scriptData.leadPriority ?? scriptData.priority ?? scriptData.classification ?? scriptData.lead_priority ?? "Warm");
+        const leadPriority: "Hot" | "Warm" | "Cold" = (leadPriorityRaw.toLowerCase().includes("hot") ? "Hot" : (leadPriorityRaw.toLowerCase().includes("cold") ? "Cold" : "Warm"));
+        
+        const aiAnalysis = String(scriptData.aiAnalysis ?? scriptData.analysis ?? scriptData.ai_analysis ?? "Processed successfully by PCS Lead Scoring Engine.");
+        const businessOpportunity = String(scriptData.businessOpportunity ?? scriptData.opportunity ?? scriptData.business_opportunity ?? "Standard custom integration.");
+        const conversionProbability = Number(scriptData.conversionProbability ?? scriptData.probability ?? scriptData.conversion_probability ?? 75);
+        const recommendedAction = String(scriptData.recommendedAction ?? scriptData.action ?? scriptData.recommended_action ?? "Contact prospect via WhatsApp hotline.");
+        const followUpDate = String(scriptData.followUpDate ?? scriptData.follow_up_date ?? new Date().toISOString().split("T")[0]);
+
+        const finishedLead: Lead = {
+          id: "lead-" + Date.now(),
+          dateTime: new Date().toISOString(),
+          name: fullName,
+          mobile,
+          email,
+          businessName: businessNameStr || "Not specified",
+          service: selectedService,
+          budget: budgetVal,
+          message: messageText || `Interested in ${selectedService}`,
+          leadScore,
+          leadPriority,
+          aiAnalysis,
+          businessOpportunity,
+          conversionProbability,
+          recommendedAction,
+          followUpDate,
+          leadSource: "Google Apps Script Backend",
+          whatsappStatus: "Pending"
+        };
+
+        setSubmissionResult(finishedLead);
+        
+        // Trigger success callback to add to analytics ledger
+        if (onLeadAdded) {
+          onLeadAdded(finishedLead);
+        }
+        
+        // Show persistent success toast in the corner
+        setSuccessToast(true);
+        setTimeout(() => setSuccessToast(false), 5000);
+        
+        // Generate Whatsapp link
+        const rawMsg = `Hello PCS Consultancy,
 
 New Business Enquiry
 
@@ -151,14 +185,21 @@ ${finishedLead.aiAnalysis}
 
 I would like to discuss this requirement.`;
 
-          const encodedMsg = encodeURIComponent(rawMsg);
-          const whatsappUrl = `https://wa.me/919330457995?text=${encodedMsg}`;
-          
-          // Open WhatsApp automatically
-          setTimeout(() => {
-            window.open(whatsappUrl, "_blank", "noopener,noreferrer");
-          }, 600);
-        }
+        const encodedMsg = encodeURIComponent(rawMsg);
+        const whatsappUrl = `https://wa.me/919330457995?text=${encodedMsg}`;
+        
+        // Open WhatsApp automatically
+        setTimeout(() => {
+          window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+        }, 600);
+
+        // Reset the form input fields
+        setFullName("");
+        setMobile("");
+        setEmail("");
+        setBusinessNameStr("");
+        setBudgetVal(25000);
+        setMessageText("");
       }
     } catch (err) {
       console.error("Failed to submit card lead through backend pipeline:", err);
@@ -253,7 +294,7 @@ I would like to discuss this requirement.`;
 
           <p className="text-gray-300 text-lg leading-relaxed max-w-2xl">
             A high-performance enterprise lead classification platform. Instantly score prospects, qualify warm deals, and harness 
-            <span className="text-purple-300 font-medium"> Gemini 3.5 Flash AI </span> 
+            <span className="text-purple-300 font-medium"> PCS AI Engine </span> 
             to generate immediate tactical conversion strategies for premium accounts.
           </p>
 

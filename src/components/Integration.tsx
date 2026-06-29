@@ -23,15 +23,11 @@ export default function Integration() {
 
   // Load existing configuration on mount
   useEffect(() => {
-    async function loadSettings() {
+    function loadSettings() {
       try {
-        const response = await fetch("/api/settings");
-        if (response.ok) {
-          const data = await response.json();
-          if (data.googleSheetsUrl) {
-            setGoogleSheetsUrl(data.googleSheetsUrl);
-          }
-        }
+        const storedUrl = localStorage.getItem("pcs_google_sheets_url") || "https://script.google.com/macros/s/AKfycbwtZ8Z8KeZZZoRqZTDDod2IJlMVNw7RDodbL4Kx4Cwpjp4iyxnWg6j8PajAEzYUO2bhYg/exec";
+        setGoogleSheetsUrl(storedUrl);
+        localStorage.setItem("pcs_google_sheets_url", storedUrl);
       } catch (err) {
         console.error("Failed to load settings:", err);
       }
@@ -45,16 +41,9 @@ export default function Integration() {
     setSaveSuccess(false);
 
     try {
-      const response = await fetch("/api/settings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ googleSheetsUrl })
-      });
-
-      if (response.ok) {
-        setSaveSuccess(true);
-        setTimeout(() => setSaveSuccess(false), 3000);
-      }
+      localStorage.setItem("pcs_google_sheets_url", googleSheetsUrl);
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
     } catch (err) {
       console.error(err);
     } finally {
