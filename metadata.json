@@ -1,0 +1,6 @@
+{
+  "name": "PCS Smart Lead Predictor AI",
+  "description": "Enterprise-grade lead prediction and CRM analytics platform with hybrid rule-based and Gemini AI engines, automated actions, and Google Sheets integration.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
